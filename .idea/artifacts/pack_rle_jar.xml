@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="pack-rle:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/pack_rle_jar</output-path>
+    <root id="archive" name="pack-rle.jar">
+      <element id="module-output" name="pack-rle" />
+    </root>
+  </artifact>
+</component>
