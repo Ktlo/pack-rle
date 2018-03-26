@@ -7,11 +7,31 @@ import java.io.*;
 
 public class Main {
 
-    private static final int DO_PACK = 0b01;
-    private static final int DO_UNPACK = 0b10;
+    public static final int DO_PACK = 0b01;
+    public static final int DO_UNPACK = 0b10;
     private static final String fileExtension = ".rle";
 
+    private InputStream in;
+    private OutputStream out;
+    private int action;
+
     public static void main(String[] args) {
+        Main task = new Main(args);
+        task.doAction();
+    }
+
+    private static void exitFailure(String message){
+        System.err.println(message);
+        System.exit(message.hashCode());
+    }
+
+    public Main(InputStream input, OutputStream output, int action) {
+        in = input;
+        out = output;
+        this.action = action;
+    }
+
+    public Main(String[] args) {
         if (args.length < 1)
             exitFailure("Insufficient argument list");
 
@@ -19,17 +39,18 @@ public class Main {
         InputStream input = null;
         OutputStream output = null;
 
-        int action = 0;
-
+        // Pipe params
         if (parameters.has('o'))
             output = System.out;
         if (parameters.has('i'))
             input = System.in;
+        // Action params
         if (parameters.has('z'))
             action |= DO_PACK;
         if (parameters.has('u'))
             action |= DO_UNPACK;
 
+        // Other output file param
         int offset;
         if (args.length > 1 && "-out".equals(args[1])) {
             if (2 >= args.length)
@@ -47,6 +68,7 @@ public class Main {
         else
             offset = 0;
 
+        // Input filename
         if (2 + offset <= args.length) {
             if (input != null)
                 exitFailure("Several inputs were specified (-i and filename)");
@@ -58,9 +80,11 @@ public class Main {
             }
         }
 
+        // If no input has specified
         if (input == null)
             exitFailure("No input file or stream");
 
+        // If no output has specified
         if (output == null) {
             String filename;
             if (args.length == 1) {
@@ -90,13 +114,19 @@ public class Main {
             }
         }
 
+        // Initialize streams
+        in = input;
+        out = output;
+    }
+
+    private void doAction() {
         try {
             switch (action) {
                 case DO_PACK:
-                    pack(input, output);
+                    pack();
                     return;
                 case DO_UNPACK:
-                    unpack(input, output);
+                    unpack();
                     return;
                 default:
                     exitFailure("Both actions pack and unpack were specified");
@@ -107,12 +137,7 @@ public class Main {
         }
     }
 
-    private static void exitFailure(String message){
-        System.err.println(message);
-        System.exit(message.hashCode());
-    }
-
-    public static void pack(InputStream in, OutputStream out) throws IOException {
+    public void pack() throws IOException {
         BufferedReader input = new BufferedReader(new ReaderUTF8(in));
         BufferedWriter output = new BufferedWriter(new UTF8OutputStreamWriter(out));
         char[] buffer = new char[4];
@@ -177,7 +202,7 @@ public class Main {
         input.close();
     }
 
-    public static void unpack(InputStream in, OutputStream out) {
+    public void unpack() {
         BufferedReader input = new BufferedReader(new ReaderUTF8(in));
         BufferedWriter output = new BufferedWriter(new UTF8OutputStreamWriter(out));
         int symbol;
@@ -209,4 +234,11 @@ public class Main {
         }
     }
 
+    public OutputStream getOutputStream() {
+        return out;
+    }
+
+    public InputStream getInputStream() {
+        return in;
+    }
 }
