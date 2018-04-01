@@ -1,7 +1,5 @@
 package spbstu.ktlo.task2;
 
-import java.util.Set;
-
 public class ProgramParameters {
 
     private char[] parameters;

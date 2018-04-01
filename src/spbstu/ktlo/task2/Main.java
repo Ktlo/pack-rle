@@ -1,8 +1,5 @@
 package spbstu.ktlo.task2;
 
-import com.sun.xml.internal.stream.writers.UTF8OutputStreamWriter;
-import jdk.internal.util.xml.impl.ReaderUTF8;
-
 import java.io.*;
 
 public class Main {
@@ -20,9 +17,9 @@ public class Main {
         task.doAction();
     }
 
-    private static void exitFailure(String message){
+    private static void exitFailure(String message, int code){
         System.err.println(message);
-        System.exit(message.hashCode());
+        System.exit(code);
     }
 
     public Main(InputStream input, OutputStream output, int action) {
@@ -33,7 +30,7 @@ public class Main {
 
     public Main(String[] args) {
         if (args.length < 1)
-            exitFailure("Insufficient argument list");
+            exitFailure("Insufficient argument list", -1);
 
         ProgramParameters parameters = new ProgramParameters(args[0]);
         InputStream input = null;
@@ -54,14 +51,14 @@ public class Main {
         int offset;
         if (args.length > 1 && "-out".equals(args[1])) {
             if (2 >= args.length)
-                exitFailure("No output file was specified to -out parameter");
+                exitFailure("No output file was specified to -out parameter", -2);
             if (output != null)
-                exitFailure("Several outputs were specified (-o and -out)");
+                exitFailure("Several outputs were specified (-o and -out)", -3);
             try {
                 output = new FileOutputStream(args[2]);
             }
             catch (Exception e) {
-                exitFailure(e.getLocalizedMessage());
+                exitFailure(e.getLocalizedMessage(), -4);
             }
             offset = 2;
         }
@@ -71,18 +68,18 @@ public class Main {
         // Input filename
         if (2 + offset <= args.length) {
             if (input != null)
-                exitFailure("Several inputs were specified (-i and filename)");
+                exitFailure("Several inputs were specified (-i and filename)", -5);
             try {
                 input = new FileInputStream(args[1 + offset]);
             }
             catch (Exception e) {
-                exitFailure(e.getLocalizedMessage());
+                exitFailure(e.getLocalizedMessage(), -6);
             }
         }
 
         // If no input has specified
         if (input == null)
-            exitFailure("No input file or stream");
+            exitFailure("No input file or stream", -7);
 
         // If no output has specified
         if (output == null) {
@@ -103,14 +100,14 @@ public class Main {
                     filename = filename.substring(0, length - fileExtension.length());
                 }
                 else
-                    exitFailure("Wrong input file extension (RLE expected)");
+                    exitFailure("Wrong input file extension (RLE expected)",-8);
             }
 
             try {
                 output = new FileOutputStream(filename);
             }
             catch (Exception e) {
-                exitFailure(e.getLocalizedMessage());
+                exitFailure(e.getLocalizedMessage(), -9);
             }
         }
 
@@ -129,17 +126,17 @@ public class Main {
                     unpack();
                     return;
                 default:
-                    exitFailure("Both actions pack and unpack were specified");
+                    exitFailure("Both actions pack and unpack were specified", -10);
             }
         }
         catch (Exception e) {
-            exitFailure(e.getLocalizedMessage());
+            exitFailure(e.getLocalizedMessage(), -11);
         }
     }
 
     public void pack() throws IOException {
-        BufferedReader input = new BufferedReader(new ReaderUTF8(in));
-        BufferedWriter output = new BufferedWriter(new UTF8OutputStreamWriter(out));
+        BufferedReader input = new BufferedReader(new InputStreamReader(in));
+        BufferedWriter output = new BufferedWriter(new OutputStreamWriter(out));
         char[] buffer = new char[4];
         int result = input.read(buffer);
         if (result < 0) {
@@ -203,8 +200,8 @@ public class Main {
     }
 
     public void unpack() {
-        BufferedReader input = new BufferedReader(new ReaderUTF8(in));
-        BufferedWriter output = new BufferedWriter(new UTF8OutputStreamWriter(out));
+        BufferedReader input = new BufferedReader(new InputStreamReader(in));
+        BufferedWriter output = new BufferedWriter(new OutputStreamWriter(out));
         int symbol;
         try {
             while ((symbol = input.read()) >= 0) {
@@ -221,7 +218,7 @@ public class Main {
             }
         }
         catch (Exception e) {
-            exitFailure(e.getLocalizedMessage());
+            exitFailure(e.getLocalizedMessage(), -12);
         }
         finally {
             try {
@@ -229,7 +226,7 @@ public class Main {
                 output.close();
             }
             catch (Exception e) {
-                exitFailure(e.getLocalizedMessage());
+                exitFailure(e.getLocalizedMessage(), -13);
             }
         }
     }
