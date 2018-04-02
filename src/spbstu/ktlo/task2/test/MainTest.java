@@ -1,7 +1,12 @@
-package spbstu.ktlo.task2;
+package spbstu.ktlo.task2.test;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import spbstu.ktlo.task2.Action;
+import spbstu.ktlo.task2.ArgumentResolver;
+import spbstu.ktlo.task2.Main;
+import spbstu.ktlo.task2.ProgramException;
+import spbstu.ktlo.task2.cli.CLIException;
 
 import java.io.*;
 
@@ -16,7 +21,7 @@ class MainTest {
         PipedInputStream myIn = new PipedInputStream();
         PipedOutputStream output = new PipedOutputStream(myIn);
         new Thread(() -> {
-            Main task = new Main(input, output, Main.DO_PACK);
+            Main task = new Main(input, output, Action.pack);
             try {
                 task.pack();
             } catch (IOException e) {
@@ -42,7 +47,7 @@ class MainTest {
         PipedInputStream myIn = new PipedInputStream();
         PipedOutputStream output = new PipedOutputStream(myIn);
         new Thread(() -> {
-            Main task = new Main(input, output, Main.DO_UNPACK);
+            Main task = new Main(input, output, Action.unpack);
             task.unpack();
         }).start();
         Writer writer = new OutputStreamWriter(myOut);
@@ -58,12 +63,12 @@ class MainTest {
     }
 
     @Test
-    void getOutputStream() {
-        assertEquals(System.out, new Main(new String[]{ "-iou" }).getOutputStream());
+    void getOutputStream() throws ProgramException, FileNotFoundException, CLIException, IllegalAccessException {
+        Assertions.assertEquals(System.out, new ArgumentResolver(new String[]{ "-ioz" }).getResult().getOutputStream());
     }
 
     @Test
-    void getInputStream() {
-        assertEquals(System.in, new Main(new String[]{ "-ioz" }).getInputStream());
+    void getInputStream() throws ProgramException, FileNotFoundException, CLIException, IllegalAccessException {
+        assertEquals(System.in, new ArgumentResolver(new String[]{ "-ioz" }).getResult().getInputStream());
     }
 }

@@ -1,19 +1,34 @@
 package spbstu.ktlo.task2;
 
+import spbstu.ktlo.task2.cli.CLIException;
+
 import java.io.*;
 
 public class Main {
 
-    public static final int DO_PACK = 0b01;
-    public static final int DO_UNPACK = 0b10;
-    private static final String fileExtension = ".rle";
-
     private InputStream in;
     private OutputStream out;
-    private int action;
+    private Action action;
 
     public static void main(String[] args) {
-        Main task = new Main(args);
+        ArgumentResolver resolver;
+        try {
+            resolver = new ArgumentResolver(args);
+        } catch (CLIException e) {
+            exitFailure(e.getMessage(), 2);
+            return;
+        } catch (IllegalAccessException e) {
+            // This is impossible to happen
+            exitFailure(e.getLocalizedMessage(), -127);
+            return;
+        } catch (ProgramException e) {
+            exitFailure(e.getMessage(), e.getErrorCode());
+            return;
+        } catch (FileNotFoundException e) {
+            exitFailure(e.getMessage(), 1);
+            return;
+        }
+        Main task = resolver.getResult();
         task.doAction();
     }
 
@@ -22,111 +37,21 @@ public class Main {
         System.exit(code);
     }
 
-    public Main(InputStream input, OutputStream output, int action) {
+    public Main(InputStream input, OutputStream output, Action action) {
         in = input;
         out = output;
         this.action = action;
     }
 
-    public Main(String[] args) {
-        if (args.length < 1)
-            exitFailure("Insufficient argument list", -1);
-
-        ProgramParameters parameters = new ProgramParameters(args[0]);
-        InputStream input = null;
-        OutputStream output = null;
-
-        // Pipe params
-        if (parameters.has('o'))
-            output = System.out;
-        if (parameters.has('i'))
-            input = System.in;
-        // Action params
-        if (parameters.has('z'))
-            action |= DO_PACK;
-        if (parameters.has('u'))
-            action |= DO_UNPACK;
-
-        // Other output file param
-        int offset;
-        if (args.length > 1 && "-out".equals(args[1])) {
-            if (2 >= args.length)
-                exitFailure("No output file was specified to -out parameter", -2);
-            if (output != null)
-                exitFailure("Several outputs were specified (-o and -out)", -3);
-            try {
-                output = new FileOutputStream(args[2]);
-            }
-            catch (Exception e) {
-                exitFailure(e.getLocalizedMessage(), -4);
-            }
-            offset = 2;
-        }
-        else
-            offset = 0;
-
-        // Input filename
-        if (2 + offset <= args.length) {
-            if (input != null)
-                exitFailure("Several inputs were specified (-i and filename)", -5);
-            try {
-                input = new FileInputStream(args[1 + offset]);
-            }
-            catch (Exception e) {
-                exitFailure(e.getLocalizedMessage(), -6);
-            }
-        }
-
-        // If no input has specified
-        if (input == null)
-            exitFailure("No input file or stream", -7);
-
-        // If no output has specified
-        if (output == null) {
-            String filename;
-            if (args.length == 1) {
-                if (action == DO_PACK)
-                    filename = "out.txt" + fileExtension;
-                else
-                    filename = "out.txt";
-            }
-            else if (action == DO_PACK)
-                filename = args[1] + fileExtension;
-            else {
-                filename = args[1];
-                int length = filename.length();
-                if (length >=4 &&
-                        filename.substring(length - fileExtension.length()).toLowerCase().equals(fileExtension)) {
-                    filename = filename.substring(0, length - fileExtension.length());
-                }
-                else
-                    exitFailure("Wrong input file extension (RLE expected)",-8);
-            }
-
-            try {
-                output = new FileOutputStream(filename);
-            }
-            catch (Exception e) {
-                exitFailure(e.getLocalizedMessage(), -9);
-            }
-        }
-
-        // Initialize streams
-        in = input;
-        out = output;
-    }
-
     private void doAction() {
         try {
             switch (action) {
-                case DO_PACK:
+                case pack:
                     pack();
-                    return;
-                case DO_UNPACK:
+                    break;
+                case unpack:
                     unpack();
-                    return;
-                default:
-                    exitFailure("Both actions pack and unpack were specified", -10);
+                    break;
             }
         }
         catch (Exception e) {
@@ -202,6 +127,7 @@ public class Main {
     public void unpack() {
         BufferedReader input = new BufferedReader(new InputStreamReader(in));
         BufferedWriter output = new BufferedWriter(new OutputStreamWriter(out));
+
         int symbol;
         try {
             while ((symbol = input.read()) >= 0) {

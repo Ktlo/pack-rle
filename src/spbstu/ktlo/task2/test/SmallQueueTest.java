@@ -1,7 +1,8 @@
-package spbstu.ktlo.task2;
+package spbstu.ktlo.task2.test;
 
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
+import spbstu.ktlo.task2.SmallQueue;
 
 class SmallQueueTest {
 

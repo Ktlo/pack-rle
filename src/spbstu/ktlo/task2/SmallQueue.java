@@ -34,7 +34,7 @@ public class SmallQueue {
         }
     }
 
-    public boolean areAllEquals() {
+    boolean areAllEquals() {
         char first = data[0];
         for (int i = 1; i < data.length; i++) {
             if (data[i] != first)

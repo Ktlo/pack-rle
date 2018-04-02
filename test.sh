@@ -28,8 +28,8 @@ fi
 
 # Try all possible arguments
 java -jar ${out_dir}/pack-rle.jar -z ${texts_dir}/text.txt
-java -jar ${out_dir}/pack-rle.jar -z -out ${texts_dir}/packed_file ${texts_dir}/text.txt
-java -jar ${out_dir}/pack-rle.jar -u -out ${texts_dir}/unpacked_file ${texts_dir}/packed_file
+java -jar ${out_dir}/pack-rle.jar -z --out ${texts_dir}/packed_file ${texts_dir}/text.txt
+java -jar ${out_dir}/pack-rle.jar -u --out ${texts_dir}/unpacked_file ${texts_dir}/packed_file
 mv ${texts_dir}/text.txt.rle ${texts_dir}/text2.txt.rle
 java -jar ${out_dir}/pack-rle.jar -u ${texts_dir}/text2.txt.rle
 
